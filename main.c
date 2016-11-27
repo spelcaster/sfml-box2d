@@ -5,6 +5,7 @@ const float kScale = 30.f;
 
 void createGround(b2World& world, float x, float y);
 void createBox(b2World& world, int mouseX, int mouseY);
+void handleEvent(b2World& world,  const sf::Event event);
 
 int main()
 {
@@ -24,20 +25,26 @@ int main()
 
     while (window.isOpen())
     {
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-        {
-            int mouseX = sf::Mouse::getPosition(window).x;
-            int mouseY = sf::Mouse::getPosition(window).y;
-            createBox(world, mouseX, mouseY);
+        sf::Event event;
+
+        while (window.pollEvent(event)) {
+            handleEvent(world, event);
         }
 
         world.Step(1/60.f, 8, 3);
 
         window.clear(sf::Color::White);
+
+        sf::Sprite sprite;
+        sprite.setTexture(groundTexture);
+        sprite.setOrigin(400.f, 8.f);
+        sprite.setPosition(400.f, 0.f);
+        /*sprite.setRotation(it->GetAngle() * 180 / b2_pi);*/
+        window.draw(sprite);
+
         for (b2Body* it = world.GetBodyList(); it != 0; it = it->GetNext())
         {
             sf::Sprite sprite;
-
             if (it->GetType() == b2_dynamicBody)
             {
                 sprite.setTexture(boxTexture);
@@ -48,11 +55,6 @@ int main()
 
                 continue;
             }
-            sprite.setTexture(groundTexture);
-            sprite.setOrigin(400.f, 8.f);
-            sprite.setPosition(kScale * it->GetPosition().x, kScale * it->GetPosition().y);
-            sprite.setRotation(it->GetAngle() * 180 / b2_pi);
-            window.draw(sprite);
         }
         window.display();
     }
@@ -95,4 +97,19 @@ void createBox(b2World& world, int mouseX, int mouseY)
     fixtureDef.shape = &shape;
 
     body->CreateFixture(&fixtureDef);
+}
+
+void handleEvent(b2World& world, const sf::Event event) {
+    switch (event.type) {
+    case sf::Event::MouseButtonPressed:
+    {
+        int mouseX = event.mouseButton.x;
+        int mouseY = event.mouseButton.y;
+        createBox(world, mouseX, mouseY);
+
+        break;
+    }
+    default:
+        break;
+    }
 }
